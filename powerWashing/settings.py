@@ -21,7 +21,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://powerwashing.up.railway.app/',
+    'https://powerwashing.up.railway.app',
 ]
 
 # Application definition
