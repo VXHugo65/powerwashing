@@ -38,47 +38,42 @@ def imprimir_recibo(request, pedido_id):
         # Cabeçalho
         p.setFont("Helvetica", 8)
         p.drawCentredString(width / 2, y, "POWER WASHING LTDA")
-        y -= 15
+        y -= 30
         p.drawCentredString(width / 2, y, "401426310")
-        y -= 15
+        y -= 30
         p.drawCentredString(width / 2, y, "AV. Samora Machel")
-        y -= 15
+        y -= 30
         p.drawCentredString(width / 2, y, "Matola")
 
-        p.setDash(2, 2)
         p.line(10, y - 5, width - 10, y - 5)
         y -= 20
 
         # Informações do pedido
         p.setFont("Helvetica", 8)
         p.drawString(10, y, f"Pedido: {pedido.id}")
-        y -= 15
+        y -= 30
         p.drawString(10, y, f"Cliente: {pedido.cliente.nome}")
-        y -= 15
+        y -= 30
         p.drawString(10, y, f"Lavandaria: {pedido.lavandaria.nome}")
-        y -= 15
+        y -= 30
         p.drawString(10, y, f"Data: {pedido.criado_em.strftime('%d/%m/%Y %H:%M')}")
-        y -= 15
-        p.line(10, y, width - 10, y)
-        y -= 15
+        y -= 30
 
         # Itens do Pedido
         p.drawString(10, y, "Itens do Pedido:")
-        y -= 15
+        y -= 30
         for item in pedido.itens.all():
             p.drawString(10, y, f"{item.quantidade}x {item.item_de_servico.nome} - {item.preco_total:.2f} MZN")
-            y -= 15
+            y -= 30
 
-        p.line(10, y, width - 10, y)
-        y -= 15
+
+
 
         # Totais e status
         p.drawString(10, y, f"Total: {pedido.total:.2f} MZN")
-        y -= 15
+        y -= 30
         p.drawString(10, y, f"Pago: {'Sim' if pedido.pago else 'Não'}")
-        y -= 15
-        p.line(10, y, width - 10, y)
-        y -= 15
+        y -= 30
 
         # Rodapé
         p.setFont("Helvetica-Oblique", 7)
