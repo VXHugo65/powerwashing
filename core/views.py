@@ -74,7 +74,7 @@ def imprimir_recibo(request, pedido_id):
         y -= 30
 
         # Rodapé
-        p.setFont("Helvetica-Oblique", 7)
+        p.setFont("Helvetica", 7)
         p.drawCentredString(width / 2, y, "Obrigado por sua compra!")
 
         p.showPage()
