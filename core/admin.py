@@ -184,26 +184,20 @@ class PedidoAdmin(ModelAdmin):
             'to': to,
             'message': message
         }
-        try:
-            response = requests.post(url, data=data, headers=headers)
-            response.raise_for_status()
+        response = requests.post(url, data=data, headers=headers)
+        response.raise_for_status()
 
-            # Verifica e separa múltiplos JSONs se necessário
-            raw_response = response.text.strip()
-            json_parts = raw_response.split("}{")  # Divide JSONs mal formatados
+        # Verifica e separa múltiplos JSONs se necessário
+        raw_response = response.text.strip()
+        json_parts = raw_response.split("}{")  # Divide JSONs mal formatados
 
-            if len(json_parts) > 1:
-                json_parts = [json.loads(f"{{{part}}}") if i != 0 and i != len(json_parts) - 1
-                              else json.loads(part)
-                              for i, part in enumerate(json_parts)]
-                return json_parts  # Retorna uma lista com os dois JSONs
-            else:
-                return json.loads(raw_response)  # Retorna JSON único
-
-        except json.JSONDecodeError:
-            return {'error': 'A resposta da API não está em formato JSON válido.', 'raw_response': response.text}
-        except requests.exceptions.RequestException as e:
-            return {'error': str(e)}
+        if len(json_parts) > 1:
+            json_parts = [json.loads(f"{{{part}}}") if i != 0 and i != len(json_parts) - 1
+                          else json.loads(part)
+                          for i, part in enumerate(json_parts)]
+            return json_parts  # Retorna uma lista com os dois JSONs
+        else:
+            return json.loads(raw_response)  # Retorna JSON único
 
     def enviar_mensagem_pedido_pronto(self, request, queryset):
         for pedido in queryset:
