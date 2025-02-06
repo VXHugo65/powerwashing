@@ -167,6 +167,7 @@ def criar_grupos_com_permissoes():
             "add_itempedido", "change_itempedido", "delete_itempedido", "view_itempedido",
         ],
         "caixa": [
+            "add_itemservico", "change_itemservico", "view_itemservico",
             "add_pedido", "change_pedido", "delete_pedido", "view_pedido",
             "add_cliente", "change_cliente", "delete_cliente", "view_cliente",
             "add_itempedido", "change_itempedido", "delete_itempedido", "view_itempedido",

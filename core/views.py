@@ -1,12 +1,16 @@
 from django.shortcuts import get_object_or_404, redirect, render, reverse
 from django.http import HttpResponse, HttpResponseBadRequest
 from .models import Pedido, Cliente, Lavandaria, ItemPedido
-from django.template.loader import render_to_string
 import json
 from django.db.models import Count, Sum, Q
 from django.db.models.functions import TruncDate
 from django.utils.timezone import now, timedelta
 from django.db import models
+from reportlab.lib.pagesizes import portrait
+from reportlab.pdfgen import canvas
+from io import BytesIO
+import logging
+logger = logging.getLogger(__name__)
 
 
 # Calcular a data inicial e o intervalo de 7 dias
@@ -14,13 +18,82 @@ data_inicial = now().date() - timedelta(days=6)
 datas_intervalo = [(data_inicial + timedelta(days=i)) for i in range(7)]
 
 
-def imprimir_recibo(request, pedido_id):
-    pedido = get_object_or_404(Pedido, id=pedido_id)
-    recibo_content = render_to_string('core/recibo_termico.txt', {'pedido': pedido})
+# def imprimir_recibo(request, pedido_id):
+#     pedido = get_object_or_404(Pedido, id=pedido_id)
+#     recibo_content = render_to_string('core/recibo_termico.txt', {'pedido': pedido})
+#
+#     response = HttpResponse(recibo_content, content_type="text/plain; charset=utf-8")
+#     response['Content-Disposition'] = f'inline; filename="recibo_pedido_{pedido.id}.txt"'
+#     return response
 
-    response = HttpResponse(recibo_content, content_type="text/plain; charset=utf-8")
-    response['Content-Disposition'] = f'inline; filename="recibo_pedido_{pedido.id}.txt"'
-    return response
+def imprimir_recibo(request, pedido_id):
+    try:
+        pedido = get_object_or_404(Pedido, id=pedido_id)
+        buffer = BytesIO()
+        width, height = 220, 600  # Tamanho de recibo fiscal
+        p = canvas.Canvas(buffer, pagesize=(width, height))
+
+        y = height - 20  # Posição inicial do cursor
+
+        # Cabeçalho
+        p.setFont("Helvetica", 8)
+        p.drawCentredString(width / 2, y, "POWER WASHING LTDA")
+        y -= 15
+        p.drawCentredString(width / 2, y, "401426310")
+        y -= 15
+        p.drawCentredString(width / 2, y, "AV. Samora Machel")
+        y -= 15
+        p.drawCentredString(width / 2, y, "Matola")
+
+        p.setDash(2, 2)
+        p.line(10, y - 5, width - 10, y - 5)
+        y -= 20
+
+        # Informações do pedido
+        p.setFont("Helvetica", 8)
+        p.drawString(10, y, f"Pedido: {pedido.id}")
+        y -= 15
+        p.drawString(10, y, f"Cliente: {pedido.cliente.nome}")
+        y -= 15
+        p.drawString(10, y, f"Lavandaria: {pedido.lavandaria.nome}")
+        y -= 15
+        p.drawString(10, y, f"Data: {pedido.criado_em.strftime('%d/%m/%Y %H:%M')}")
+        y -= 15
+        p.line(10, y, width - 10, y)
+        y -= 15
+
+        # Itens do Pedido
+        p.drawString(10, y, "Itens do Pedido:")
+        y -= 15
+        for item in pedido.itens.all():
+            p.drawString(10, y, f"{item.quantidade}x {item.item_de_servico.nome} - {item.preco_total:.2f} MZN")
+            y -= 15
+
+        p.line(10, y, width - 10, y)
+        y -= 15
+
+        # Totais e status
+        p.drawString(10, y, f"Total: {pedido.total:.2f} MZN")
+        y -= 15
+        p.drawString(10, y, f"Pago: {'Sim' if pedido.pago else 'Não'}")
+        y -= 15
+        p.line(10, y, width - 10, y)
+        y -= 15
+
+        # Rodapé
+        p.setFont("Helvetica-Oblique", 7)
+        p.drawCentredString(width / 2, y, "Obrigado por sua compra!")
+
+        p.showPage()
+        p.save()
+
+        buffer.seek(0)
+        response = HttpResponse(buffer, content_type='application/pdf')
+        response['Content-Disposition'] = f'inline; filename="recibo_pedido_{pedido.id}.pdf"'
+        return response
+    except Exception as e:
+        logger.error(f"Erro ao gerar recibo: {e}")
+        return HttpResponse("Erro ao gerar recibo.", status=500)
 
 
 def meu_pedido(request):
