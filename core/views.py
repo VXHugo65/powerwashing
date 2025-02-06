@@ -44,9 +44,7 @@ def imprimir_recibo(request, pedido_id):
         p.drawCentredString(width / 2, y, "AV. Samora Machel")
         y -= 30
         p.drawCentredString(width / 2, y, "Matola")
-
-        p.line(10, y - 5, width - 10, y - 5)
-        y -= 20
+        y -= 30
 
         # Informações do pedido
         p.setFont("Helvetica", 8)
